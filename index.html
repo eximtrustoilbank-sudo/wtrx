@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WTRX — Wrapped Tron on Solana</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0b0e14;
+            color: #eef2f8;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        a { color: #00d4ff; text-decoration: none; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+        /* ——— GLOW ——— */
+        .glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(150px);
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .glow-1 { width: 600px; height: 600px; background: #00d4ff; top: -200px; right: -100px; }
+        .glow-2 { width: 600px; height: 600px; background: #7b2fbe; bottom: -200px; left: -100px; }
+        .glow-3 { width: 400px; height: 400px; background: #14f195; top: 40%; left: 20%; }
+
+        /* ——— HEADER ——— */
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            background: rgba(11,14,20,0.92);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 900;
+            color: #fff;
+        }
+        .logo img { height: 36px; width: auto; }
+        .logo span { color: #00d4ff; }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .nav-links a { color: #8892b0; transition: 0.2s; }
+        .nav-links a:hover { color: #00d4ff; }
+        .nav-links .active { color: #00d4ff; font-weight: 600; }
+        .btn-buy {
+            background: linear-gradient(135deg, #00d4ff, #7b2fbe);
+            color: #fff !important;
+            padding: 8px 24px;
+            border-radius: 40px;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+        .btn-buy:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(0,212,255,0.3); }
+
+        .lang-switcher { position: relative; display: inline-block; margin-left: 4px; }
+        .lang-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); color: #eef2f8; padding: 4px 12px; border-radius: 40px; font-size: 12px; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 4px; }
+        .lang-btn:hover { background: rgba(0,212,255,0.1); border-color: #00d4ff; }
+        .lang-dropdown { position: absolute; top: 120%; right: 0; background: #0b0e14; border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 6px 0; min-width: 140px; display: none; z-index: 999; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .lang-dropdown.show { display: block; }
+        .lang-dropdown button { background: none; border: none; color: #8892b0; padding: 6px 18px; width: 100%; text-align: left; font-size: 12px; font-weight: 500; cursor: pointer; transition: 0.1s; font-family: inherit; }
+        .lang-dropdown button:hover { background: rgba(0,212,255,0.05); color: #00d4ff; }
+        .lang-dropdown button.active { color: #00d4ff; font-weight: 700; }
+
+        /* ——— HERO ——— */
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .hero-image {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 32px;
+            border-radius: 50%;
+            box-shadow: 0 0 60px rgba(0,212,255,0.2);
+        }
+        .hero h1 {
+            font-size: clamp(2.8rem, 8vw, 4.8rem);
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -2px;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, #00d4ff, #7b2fbe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #8892b0;
+            max-width: 600px;
+            margin: 0 auto 32px;
+        }
+        .hero-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #7b2fbe);
+            color: #fff !important;
+            font-weight: 700;
+            padding: 14px 44px;
+            border-radius: 60px;
+            font-size: 1.05rem;
+            display: inline-block;
+            transition: 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 8px 30px rgba(0,212,255,0.3); }
+        .btn-secondary {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #eef2f8 !important;
+            font-weight: 600;
+            padding: 14px 34px;
+            border-radius: 60px;
+            font-size: 1.05rem;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.08); border-color: #00d4ff; }
+
+        /* ——— STATS ——— */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+            padding: 40px 0 60px;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 16px;
+            background: rgba(255,255,255,0.02);
+        }
+        .stat-item .number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00d4ff, #7b2fbe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-item .label {
+            font-size: 0.85rem;
+            color: #8892b0;
+            margin-top: 4px;
+        }
+
+        /* ——— PARTNERS ——— */
+        .partners {
+            padding: 40px 0 60px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .partners h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+        .partners-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+        }
+        .partner-item {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #8892b0;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
+        .partner-item:hover { opacity: 1; color: #fff; }
+        .partner-item .icon { font-size: 2rem; display: block; margin-bottom: 4px; }
+
+        /* ——— ECOSYSTEM ——— */
+        .ecosystem { padding: 60px 0; position: relative; z-index: 1; }
+        .ecosystem h2 {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .ecosystem .sub {
+            text-align: center;
+            color: #8892b0;
+            max-width: 500px;
+            margin: 0 auto 40px;
+        }
+        .eco-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+        .eco-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            padding: 28px 20px 24px;
+            border-radius: 20px;
+            text-align: center;
+            transition: 0.25s;
+        }
+        .eco-card:hover { border-color: #00d4ff; transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+        .eco-card .icon { font-size: 2.4rem; margin-bottom: 10px; }
+        .eco-card h3 { font-size: 1.1rem; margin-bottom: 4px; color: #fff; }
+        .eco-card p { font-size: 0.9rem; color: #8892b0; }
+
+        .contract-box { text-align: center; padding: 20px 0 40px; position: relative; z-index: 1; }
+        .contract-box code {
+            background: rgba(255,255,255,0.03);
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #8892b0;
+            border: 1px solid rgba(255,255,255,0.04);
+            display: inline-block;
+            word-break: break-all;
+            max-width: 100%;
+        }
+
+        footer {
+            padding: 30px 0;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            text-align: center;
+            color: #5a6488;
+            font-size: 0.85rem;
+            position: relative;
+            z-index: 1;
+        }
+        footer .socials a {
+            color: #8892b0;
+            margin: 0 14px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        footer .socials a:hover { color: #00d4ff; }
+
+        @media (max-width: 700px) {
+            .header-inner { flex-direction: column; align-items: stretch; text-align: center; }
+            .nav-links { justify-content: center; }
+            .hero h1 { font-size: 2.4rem; }
+            .eco-grid { grid-template-columns: 1fr 1fr; }
+            .partners-grid { gap: 20px; }
+        }
+        @media (max-width: 480px) { .eco-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
+<div class="glow glow-3"></div>
+
+<header>
+    <div class="container header-inner">
+        <a href="index.html" class="logo">
+            <img src="https://raw.githubusercontent.com/eximtrustoilbank-sudo/wtrx/main/wtrx_logo.png" alt="WTRX">
+            <span>WTRX</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="active" data-i18n="nav-home">Home</a>
+            <a href="trade.html" data-i18n="nav-trade">Trade</a>
+            <a href="staking.html" data-i18n="nav-staking">Staking</a>
+            <a href="dao.html" data-i18n="nav-dao">DAO</a>
+            <a href="bridge.html" data-i18n="nav-bridge">Bridge</a>
+            <a href="ecosystem.html" data-i18n="nav-ecosystem">Ecosystem</a>
+            <a href="blog.html" data-i18n="nav-blog">Blog</a>
+            <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+            <a href="#" class="btn-buy" data-i18n="nav-buy">Buy WTRX</a>
+            <div class="lang-switcher">
+                <button class="lang-btn" id="langToggle">🌐 <span id="currentLangLabel">EN</span></button>
+                <div class="lang-dropdown" id="langDropdown">
+                    <button data-lang="en" class="active">🇬🇧 English</button>
+                    <button data-lang="ru">🇷🇺 Русский</button>
+                    <button data-lang="es">🇪🇸 Español</button>
+                    <button data-lang="fr">🇫🇷 Français</button>
+                    <button data-lang="de">🇩🇪 Deutsch</button>
+                    <button data-lang="zh">🇨🇳 中文</button>
+                    <button data-lang="ja">🇯🇵 日本語</button>
+                    <button data-lang="ko">🇰🇷 한국어</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="container">
+        <img src="https://raw.githubusercontent.com/eximtrustoilbank-sudo/wtrx/main/wtrx_logo.png" alt="WTRX" class="hero-image">
+        <h1 data-i18n="hero-title">The <span class="highlight">power of Tron</span> on Solana</h1>
+        <p data-i18n="hero-desc">WTRX (Wrapped Tron) is the bridge between Tron and Solana. Stake, earn and trade with the power of Tron on Solana. 10B supply.</p>
+        <div class="hero-buttons">
+            <a href="#" class="btn-primary" data-i18n="hero-btn">🚀 Get WTRX</a>
+            <a href="#ecosystem" class="btn-secondary" data-i18n="hero-btn2">Explore</a>
+        </div>
+    </div>
+</section>
+
+<div class="container stats">
+    <div class="stat-item"><div class="number">10B</div><div class="label" data-i18n="stat-supply">Total Supply</div></div>
+    <div class="stat-item"><div class="number">0.25%</div><div class="label" data-i18n="stat-fee">Transfer Fee</div></div>
+    <div class="stat-item"><div class="number">Solana</div><div class="label" data-i18n="stat-network">Network</div></div>
+    <div class="stat-item"><div class="number">🔷</div><div class="label" data-i18n="stat-bridge">Tron Bridge</div></div>
+</div>
+
+<section class="partners">
+    <div class="container">
+        <h2 data-i18n="partners-title">Built on Solana. Powered by Tron.</h2>
+        <div class="partners-grid">
+            <div class="partner-item"><span class="icon">🔷</span> Tron</div>
+            <div class="partner-item"><span class="icon">🔶</span> Solana</div>
+            <div class="partner-item"><span class="icon">₿</span> Bitcoin</div>
+            <div class="partner-item"><span class="icon">💠</span> Ethereum</div>
+            <div class="partner-item"><span class="icon">🟡</span> BNB</div>
+        </div>
+    </div>
+</section>
+
+<section class="container ecosystem" id="ecosystem">
+    <h2 data-i18n="eco-title">🔷 WTRX Ecosystem</h2>
+    <p class="sub" data-i18n="eco-sub">Four pillars that make WTRX the bridge to Tron</p>
+    <div class="eco-grid">
+        <div class="eco-card">
+            <div class="icon">📊</div>
+            <h3 data-i18n="eco-trade-title">Trade</h3>
+            <p data-i18n="eco-trade-desc">Buy and sell WTRX on Meteora with deep liquidity.</p>
+        </div>
+        <div class="eco-card">
+            <div class="icon">🪙</div>
+            <h3 data-i18n="eco-staking-title">Staking</h3>
+            <p data-i18n="eco-staking-desc">Lock your WTRX and earn passive income with high APR.</p>
+        </div>
+        <div class="eco-card">
+            <div class="icon">🏛️</div>
+            <h3 data-i18n="eco-dao-title">DAO</h3>
+            <p data-i18n="eco-dao-desc">Vote on proposals and shape the future of the ecosystem.</p>
+        </div>
+        <div class="eco-card">
+            <div class="icon">🌉</div>
+            <h3 data-i18n="eco-bridge-title">Bridge</h3>
+            <p data-i18n="eco-bridge-desc">Move assets between Solana and other networks.</p>
+        </div>
+    </div>
+</section>
+
+<div class="container contract-box">
+    <code>📜 WTRX: BFgvTe3pGQuAAGzZ28SVhPcHjBSh2BzPfsZWNtG7g8UK</code>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="socials">
+            <a href="#" data-i18n="footer-twitter">🐦 Twitter</a>
+            <a href="#" data-i18n="footer-telegram">💬 Telegram</a>
+            <a href="#" data-i18n="footer-gecko">📊 GeckoTerminal</a>
+            <a href="#" data-i18n="footer-coingecko">📈 CoinGecko</a>
+        </div>
+        <p data-i18n="footer-copy">© 2026 WTRX Protocol. Built on Solana.</p>
+    </div>
+</footer>
+
+<script>
+    // ============================================================
+    // 8 ЯЗЫКОВ — ПЕРЕВОДЧИК
+    // ============================================================
+
+    const translations = {
+        en: {
+            'nav-home': 'Home', 'nav-trade': 'Trade', 'nav-staking': 'Staking',
+            'nav-dao': 'DAO', 'nav-bridge': 'Bridge', 'nav-ecosystem': 'Ecosystem',
+            'nav-blog': 'Blog', 'nav-whitepaper': 'Whitepaper', 'nav-buy': 'Buy WTRX',
+            'hero-title': 'The power of Tron on Solana',
+            'hero-desc': 'WTRX (Wrapped Tron) is the bridge between Tron and Solana. Stake, earn and trade with the power of Tron on Solana. 10B supply.',
+            'hero-btn': '🚀 Get WTRX', 'hero-btn2': 'Explore',
+            'stat-supply': 'Total Supply', 'stat-fee': 'Transfer Fee',
+            'stat-network': 'Network', 'stat-bridge': 'Tron Bridge',
+            'partners-title': 'Built on Solana. Powered by Tron.',
+            'eco-title': '🔷 WTRX Ecosystem',
+            'eco-sub': 'Four pillars that make WTRX the bridge to Tron',
+            'eco-trade-title': 'Trade', 'eco-trade-desc': 'Buy and sell WTRX on Meteora with deep liquidity.',
+            'eco-staking-title': 'Staking', 'eco-staking-desc': 'Lock your WTRX and earn passive income with high APR.',
+            'eco-dao-title': 'DAO', 'eco-dao-desc': 'Vote on proposals and shape the future of the ecosystem.',
+            'eco-bridge-title': 'Bridge', 'eco-bridge-desc': 'Move assets between Solana and other networks.',
+            'footer-twitter': '🐦 Twitter', 'footer-telegram': '💬 Telegram',
+            'footer-gecko': '📊 GeckoTerminal', 'footer-coingecko': '📈 CoinGecko',
+            'footer-copy': '© 2026 WTRX Protocol. Built on Solana.'
+        },
+        ru: {
+            'nav-home': 'Главная', 'nav-trade': 'Торги', 'nav-staking': 'Стейкинг',
+            'nav-dao': 'Управление', 'nav-bridge': 'Мост', 'nav-ecosystem': 'Экосистема',
+            'nav-blog': 'Блог', 'nav-whitepaper': 'Whitepaper', 'nav-buy': 'Купить WTRX',
+            'hero-title': 'Сила Tron на Solana',
+            'hero-desc': 'WTRX (Wrapped Tron) — это мост между Tron и Solana. Стейкай, зарабатывай и торгуй с силой Tron на Solana. 10B supply.',
+            'hero-btn': '🚀 Получить WTRX', 'hero-btn2': 'Исследовать',
+            'stat-supply': 'Общий запас', 'stat-fee': 'Комиссия',
+            'stat-network': 'Сеть', 'stat-bridge': 'Мост Tron',
+            'partners-title': 'Построено на Solana. Работает на Tron.',
+            'eco-title': '🔷 Экосистема WTRX',
+            'eco-sub': 'Четыре столпа, которые делают WTRX мостом к Tron',
+            'eco-trade-title': 'Торги', 'eco-trade-desc': 'Покупайте и продавайте WTRX на Meteora с глубокой ликвидностью.',
+            'eco-staking-title': 'Стейкинг', 'eco-staking-desc': 'Заморозьте WTRX и получайте пассивный доход с высоким APR.',
+            'eco-dao-title': 'Управление', 'eco-dao-desc': 'Голосуйте за предложения и формируйте будущее экосистемы.',
+            'eco-bridge-title': 'Мост', 'eco-bridge-desc': 'Перемещайте активы между Solana и другими сетями.',
+            'footer-twitter': '🐦 Twitter', 'footer-telegram': '💬 Telegram',
+            'footer-gecko': '📊 GeckoTerminal', 'footer-coingecko': '📈 CoinGecko',
+            'footer-copy': '© 2026 WTRX Protocol. Создано на Solana.'
+        },
+        es: {
+            'nav-home': 'Inicio', 'nav-trade': 'Comerciar', 'nav-staking': 'Staking',
+            'nav-dao': 'DAO', 'nav-bridge': 'Puente', 'nav-ecosystem': 'Ecosistema',
+            'nav-blog': 'Blog', 'nav-whitepaper': 'Whitepaper', 'nav-buy': 'Comprar WTRX',
+            'hero-title': 'El poder de Tron en Solana',
+            'hero-desc': 'WTRX (Wrapped Tron) es el puente entre Tron y Solana. Stakea, gana y comercia con el poder de Tron en Solana. 10B supply.',
+            'hero-btn': '🚀 Obtener WTRX', 'hero-btn2': 'Explorar',
+            'stat-supply': 'Suministro total', 'stat-fee': 'Comisión',
+            'stat-network': 'Red', 'stat-bridge': 'Puente Tron',
+            'partners-title': 'Construido en Solana. Impulsado por Tron.',
+            'eco-title': '🔷 Ecosistema WTRX',
+            'eco-sub': 'Cuatro pilares que hacen de WTRX el puente a Tron',
+            'eco-trade-title': 'Comercio', 'eco-trade-desc': 'Compra y vende WTRX en Meteora con alta liquidez.',
+            'eco-staking-title': 'Staking', 'eco-staking-desc': 'Bloquea tus WTRX y obtén ingresos pasivos con alto APR.',
+            'eco-dao-title': 'DAO', 'eco-dao-desc': 'Vota propuestas y da forma al futuro del ecosistema.',
+            'eco-bridge-title': 'Puente', 'eco-bridge-desc': 'Mueve activos entre Solana y otras redes.',
+            'footer-twitter': '🐦 Twitter', 'footer-telegram': '💬 Telegram',
+            'footer-gecko': '📊 GeckoTerminal', 'footer-coingecko': '📈 CoinGecko',
+            'footer-copy': '© 2026 WTRX Protocol. Construido en Solana.'
+        },
+        fr: {
+            'nav-home': 'Accueil', 'nav-trade': 'Échanger', 'nav-staking': 'Staking',
+            'nav-dao': 'DAO', 'nav-bridge': 'Pont', 'nav-ecosystem': 'Écosystème',
+            'nav-blog': 'Blog', 'nav-whitepaper': 'Whitepaper', 'nav-buy': 'Acheter WTRX',
+            'hero-title': 'La puissance de Tron sur Solana',
+            'hero-desc': 'WTRX (Wrapped Tron) est le pont entre Tron et Solana. Stakez, gagnez et échangez avec la puissance de Tron sur Solana. 10B supply.',
+            'hero-btn': '🚀 Obtenir WTRX', 'hero-btn2': 'Explorer',
+            'stat-supply': 'Offre totale', 'stat-fee': 'Frais',
+            'stat-network': 'Réseau', 'stat-bridge': 'Pont Tron',
+            'partners-title': 'Construit sur Solana. Propulsé par Tron.',
+            'eco-title': '🔷 Écosystème WTRX',
+            'eco-sub': 'Quatre piliers qui font de WTRX le pont vers Tron',
+            'eco-trade-title': 'Échange', 'eco-trade-desc': 'Achetez et vendez WTRX sur Meteora avec une liquidité profonde.',
+            'eco-staking-title': 'Staking', 'eco-staking-desc': 'Bloquez vos WTRX et gagnez des revenus passifs avec un APR élevé.',
+            'eco-dao-title': 'DAO', 'eco-dao-desc': 'Votez sur les propositions et façonnez l\'avenir de l\'écosystème.',
+            'eco-bridge-title': 'Pont', 'eco-bridge-desc': 'Déplacez des actifs entre Solana et d\'autres réseaux.',
+            'footer-twitter': '🐦 Twitter', 'footer-telegram': '💬 Telegram',
+            'footer-gecko': '📊 GeckoTerminal', 'footer-coingecko': '📈 CoinGecko',
+            'footer-copy': '© 2026 WTRX Protocol. Construit sur Solana.'
+        },
+        de: {
+            'nav-home': 'Startseite', 'nav-trade': 'Handeln', 'nav-staking': 'Staking',
+            'nav-dao': 'DAO', 'nav-bridge': 'Brücke', 'nav-ecosystem': 'Ökosystem',
+            'nav-blog': 'Blog', 'nav-whitepaper': 'Whitepaper', 'nav-buy': 'WTRX kaufen',
+            'hero-title': 'Die Kraft von Tron auf Solana',
+            'hero-desc': 'WTRX (Wrapped Tron) ist die Brücke zwischen Tron und Solana. Stake, verdiene und handle mit der Kraft von Tron auf Solana. 10B supply.',
+            'hero-btn': '🚀 WTRX erhalten', 'hero-btn2': 'Entdecken',
+            'stat-supply': 'Gesamtangebot', 'stat-fee': 'Gebühr',
+            'stat-network': 'Netzwerk', 'stat-bridge': 'Tron-Brücke',
+            'partners-title': 'Erbaut auf Solana. Angetrieben von Tron.',
+            'eco-title': '🔷 WTRX-Ökosystem',
+            'eco-sub': 'Vier Säulen, die WTRX zur Brücke zu Tron machen',
+            'eco-trade-title': 'Handel', 'eco-trade-desc': 'Kaufen und verkaufen Sie WTRX auf Meteora mit hoher Liquidität.',
+            'eco-staking-title': 'Staking', 'eco-staking-desc': 'Sperre deine WTRX und verdiene passives Einkommen mit hohem APR.',
+            'eco-dao-title': 'DAO', 'eco-dao-desc': 'Stimme über Vorschläge ab und gestalte die Zukunft des Ökosystems.',
+            'eco-bridge-title': 'Brücke', 'eco-bridge-desc': 'Bewege Vermögenswerte zwischen Solana und anderen Netzwerken.',
+            'footer-twitter': '🐦 Twitter', 'footer-telegram': '💬 Telegram',
+            'footer-gecko': '📊 GeckoTerminal', 'footer-coingecko': '📈 CoinGecko',
+            'footer-copy': '© 2026 WTRX Protocol. Erbaut auf Solana.'
+        },
+        zh: {
+            'nav-home': '首页', 'nav-trade': '交易', 'nav-staking': '质押',
+            'nav-dao': 'DAO', 'nav-bridge': '跨链桥', 'nav-ecosystem': '生态系统',
+            'nav-blog': '博客', 'nav-whitepaper': '白皮书', 'nav-buy': '购买 WTRX',
+            'hero-title': 'Tron 在 Solana 上的力量',
+            'hero-desc': 'WTRX (Wrapped Tron) 是 Tron 和 Solana 之间的桥梁。在 Solana 上质押、赚取和交易 Tron 的力量。10B 供应量。',
+            'hero-btn': '🚀 获取 WTRX', 'hero-btn2': '探索',
+            'stat-supply': '总供应量', 'stat-fee': '转账费',
+            'stat-network': '网络', 'stat-bridge': 'Tron 桥',
+            'partners-title': '构建于 Solana。由 Tron 驱动。',
+            'eco-title': '🔷 WTRX 生态系统',
+            'eco-sub': '四大支柱使 WTRX 成为通往 Tron 的桥梁',
+            'eco-trade-title': '交易', 'eco-trade-desc': '在 Meteora 上买卖 WTRX，具有高流动性。',
+            'eco-staking-title': '质押', 'eco-staking-desc': '锁定您的 WTRX 并获得被动收入，APR 很高。',
+            'eco-dao-title': 'DAO', 'eco-dao-desc': '对提案进行投票，塑造生态系统的未来。',
+            'eco-bridge-title': '跨链桥', 'eco-bridge-desc': '在 Solana 和其他网络之间转移资产。',
+            'footer-twitter': '🐦 Twitter', 'footer-telegram': '💬 Telegram',
+            'footer-gecko': '📊 GeckoTerminal', 'footer-coingecko': '📈 CoinGecko',
+            'footer-copy': '© 2026 WTRX Protocol. 基于 Solana 构建。'
+        },
+        ja: {
+            'nav-home': 'ホーム', 'nav-trade': '取引', 'nav-staking': 'ステーキング',
+            'nav-dao': 'DAO', 'nav-bridge': 'ブリッジ', 'nav-ecosystem': 'エコシステム',
+            'nav-blog': 'ブログ', 'nav-whitepaper': 'ホワイトペーパー', 'nav-buy': 'WTRXを購入',
+            'hero-title': 'Solana上のTronの力',
+            'hero-desc': 'WTRX (Wrapped Tron) は Tron と Solana の間のブリッジです。Solana上でTronの力でステーキング、収益、取引を。10B供給。',
+            'hero-btn': '🚀 WTRXを入手', 'hero-btn2': '探索する',
+            'stat-supply': '総供給量', 'stat-fee': '転送手数料',
+            'stat-network': 'ネットワーク', 'stat-bridge': 'Tronブリッジ',
+            'partners-title': 'Solana上に構築。Tronによって駆動。',
+            'eco-title': '🔷 WTRXエコシステム',
+            'eco-sub': 'WTRXをTronへのブリッジにする4つの柱',
+            'eco-trade-title': '取引', 'eco-trade-desc': 'MeteoraでWTRXを売買、高い流動性。',
+            'eco-staking-title': 'ステーキング', 'eco-staking-desc': 'WTRXをロックして受動的収入を得る、高APR。',
+            'eco-dao-title': 'DAO', 'eco-dao-desc': '提案に投票し、エコシステムの未来を形作る。',
+            'eco-bridge-title': 'ブリッジ', 'eco-bridge-desc': 'Solanaと他のネットワーク間で資産を移動。',
+            'footer-twitter': '🐦 Twitter', 'footer-telegram': '💬 Telegram',
+            'footer-gecko': '📊 GeckoTerminal', 'footer-coingecko': '📈 CoinGecko',
+            'footer-copy': '© 2026 WTRX Protocol. Solana上に構築。'
+        },
+        ko: {
+            'nav-home': '홈', 'nav-trade': '거래', 'nav-staking': '스테이킹',
+            'nav-dao': 'DAO', 'nav-bridge': '브리지', 'nav-ecosystem': '생태계',
+            'nav-blog': '블로그', 'nav-whitepaper': '백서', 'nav-buy': 'WTRX 구매',
+            'hero-title': 'Solana에서의 Tron의 힘',
+            'hero-desc': 'WTRX (Wrapped Tron)는 Tron과 Solana 사이의 브리지입니다. Solana에서 Tron의 힘으로 스테이킹, 수익, 거래를 즐기세요. 10B 공급량.',
+            'hero-btn': '🚀 WTRX 받기', 'hero-btn2': '탐색',
+            'stat-supply': '총 공급량', 'stat-fee': '전송 수수료',
+            'stat-network': '네트워크', 'stat-bridge': 'Tron 브리지',
+            'partners-title': 'Solana에서 구축. Tron에 의해 구동.',
+            'eco-title': '🔷 WTRX 생태계',
+            'eco-sub': 'WTRX를 Tron으로의 브리지로 만드는 4가지 기둥',
+            'eco-trade-title': '거래', 'eco-trade-desc': 'Meteora에서 높은 유동성으로 WTRX를 사고팔 수 있습니다.',
+            'eco-staking-title': '스테이킹', 'eco-staking-desc': 'WTRX를 잠그고 높은 APR로 수동적 소득을 얻으세요.',
+            'eco-dao-title': 'DAO', 'eco-dao-desc': '제안에 투표하고 생태계의 미래를 형성하세요.',
+            'eco-bridge-title': '브리지', 'eco-bridge-desc': 'Solana와 다른 네트워크 간에 자산을 이동하세요.',
+            'footer-twitter': '🐦 Twitter', 'footer-telegram': '💬 Telegram',
+            'footer-gecko': '📊 GeckoTerminal', 'footer-coingecko': '📈 CoinGecko',
+            'footer-copy': '© 2026 WTRX Protocol. Solana에서 구축됨.'
+        }
+    };
+
+    let currentLang = localStorage.getItem('wtrxLang') || 'en';
+
+    function applyLanguage(lang) {
+        if (!translations[lang]) return;
+        const t = translations[lang];
+        document.documentElement.lang = lang;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (t[key]) {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = t[key];
+                } else {
+                    el.textContent = t[key];
+                }
+            }
+        });
+        document.getElementById('currentLangLabel').textContent = lang.toUpperCase();
+        document.querySelectorAll('.lang-dropdown button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+        localStorage.setItem('wtrxLang', lang);
+        currentLang = lang;
+    }
+
+    document.getElementById('langToggle').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('langDropdown').classList.toggle('show');
+    });
+    document.addEventListener('click', () => {
+        document.getElementById('langDropdown').classList.remove('show');
+    });
+    document.querySelectorAll('.lang-dropdown button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            applyLanguage(btn.dataset.lang);
+            document.getElementById('langDropdown').classList.remove('show');
+        });
+    });
+    applyLanguage(currentLang);
+</script>
+</body>
+</html>
